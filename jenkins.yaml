@@ -1,67 +1,163 @@
-jenkins:
-  systemMessage: "TheAntLab Jenkins"
-
-  securityRealm:
-    local:
-      allowsSignup: false
-      users:
-        - id: "keirs"
-          name: "Keir Storrie"
-
-  authorizationStrategy:
-    unsecured: {}
-
-  nodes:
-    - permanent:
-        name: "windows-builder"
-        labelString: "windows"
-        remoteFS: "C:\\Jenkins"
-        launcher:
-          jnlp: {}
-        nodeProperties:
-          - envVars:
-              env:
-                - key: "ANDROID_SDK"
-                  value: "${WINDOWS_ANDROID_SDK}"
-                - key: "ANDROID_NDK"
-                  value: "${WINDOWS_ANDROID_NDK}"
-                - key: "JAVA_HOME"
-                  value: "${WINDOWS_JAVA_HOME}"
-
-    - permanent:
-        name: "macos-builder"
-        labelString: "mac"
-        remoteFS: "/var/jenkins"
-        launcher:
-          jnlp: {}
-
 credentials:
   system:
     domainCredentials:
-      - credentials:
-          - usernamePassword:
-              id: "github-pat-userpass2"
-              scope: GLOBAL
-              username: "theantlab"
-              password: "${GITHUB_PAT}"
-              description: "GitHub PAT as username/password"
+    - credentials:
+      - string:
+          description: "GitHub Personal Access Token"
+          id: "github-pat"
+          scope: GLOBAL
+          secret: "${GITHUB_PAT}"
+      - usernamePassword:
+          description: "GitHub PAT as username/password"
+          id: "github-pat-userpass"
+          password: "${GITHUB_PAT}"
+          scope: GLOBAL
+          username: "theantlab"
+      - usernamePassword:
+          description: "GitHub PAT as username/password"
+          id: "github-pat-userpass2"
+          password: "${GITHUB_PAT}"
+          scope: GLOBAL
+          username: "theantlab"
 
-jobs:
-  - script: |
-      multibranchPipelineJob('SanAngeles') {
-        branchSources {
-          branchSource {
-            source {
-              github {
-                id('san-angeles')
-                repoOwner('theantlab')
-                repository('SanAngeles')
-                credentialsId('github-pat-userpass2')
-              }
-            }
-          }
-        }
-        orphanedItemStrategy {
-          discardOldItems {}
-        }
-      }
+jenkins:
+  crumbIssuer:
+    standard:
+      excludeClientIPFromCrumb: false
+  disableRememberMe: false
+  disabledAdministrativeMonitors:
+  - "jenkins.diagnostics.SecurityIsOffMonitor"
+  - "jenkins.security.csp.impl.CspRecommendation"
+  - "hudson.util.DoubleLaunchChecker"
+  - "jenkins.diagnostics.ControllerExecutorsAgents"
+  markupFormatter: "plainText"
+  mode: NORMAL
+  nodes:
+  - permanent:
+      labelString: "macos ios xcode swift flutter"
+      launcher:
+        inbound:
+          workDirSettings:
+            disabled: false
+            failIfWorkDirIsMissing: false
+            internalDir: "remoting"
+      name: "macos-builder"
+      nodeDescription: "macOS build node for macOS and iOS apps"
+      numExecutors: 2
+      remoteFS: "/Users/Shared/Jenkins"
+      retentionStrategy: "always"
+  - permanent:
+      labelString: "windows android windows-app electron dotnet"
+      launcher:
+        inbound:
+          workDirSettings:
+            disabled: false
+            failIfWorkDirIsMissing: false
+            internalDir: "remoting"
+      name: "windows-builder"
+      nodeDescription: "Windows build node for Android, Windows apps"
+      nodeProperties:
+      - envVars:
+          env:
+          - key: "ANDROID_NDK"
+            value: "${WINDOWS_ANDROID_NDK}"
+          - key: "ANDROID_SDK"
+            value: "${WINDOWS_ANDROID_SDK}"
+          - key: "JAVA_HOME"
+            value: "${WINDOWS_JAVA_HOME}"
+      numExecutors: 2
+      remoteFS: "C:\\Jenkins"
+      retentionStrategy: "always"
+  numExecutors: 2
+  projectNamingStrategy: "standard"
+  quietPeriod: 5
+  remotingSecurity:
+    enabled: true
+  scmCheckoutRetryCount: 0
+  securityRealm:
+    local:
+      allowsSignup: false
+      enableCaptcha: false
+      users:
+      - id: "keirs"
+        name: "Keir Storrie"
+        properties:
+        - mailer:
+            emailAddress: "keir.storrie@googlemail.com"
+  slaveAgentPort: 50000
+  updateCenter:
+    sites:
+    - id: "default"
+      url: "https://updates.jenkins.io/update-center.json"
+  views:
+  - all:
+      name: "all"
+
+security:
+  apiToken:
+    creationOfLegacyTokenEnabled: false
+    tokenGenerationOnCreationEnabled: false
+    usageStatisticsEnabled: true
+  gitHooks:
+    allowedOnAgents: false
+    allowedOnController: false
+  gitHostKeyVerificationConfiguration:
+    sshHostKeyVerificationStrategy: "knownHostsFileVerificationStrategy"
+  sSHD:
+    port: -1
+  scriptApproval:
+    forceSandbox: false
+
+unclassified:
+  bitbucketEndpointConfiguration:
+    endpoints:
+    - bitbucketCloudEndpoint:
+        enableCache: false
+        repositoriesCacheDuration: 0
+        teamCacheDuration: 0
+        webhook:
+          cloudWebhook:
+            enableHookSignature: false
+            manageHooks: false
+            webhooksCacheDuration: 180
+  gitHubConfiguration:
+    apiRateLimitChecker: ThrottleForNormalize
+  gitHubPluginConfig:
+    configs:
+    - credentialsId: "github-pat"
+      manageHooks: false
+      name: "GitHub"
+    hookUrl: "http://localhost:8090/github-webhook/"
+  globalConfigurationImpl:
+    agvtoolPath: "/usr/bin/agvtool"
+    xcodebuildPath: "/usr/bin/xcodebuild"
+    xcrunPath: "/usr/bin/xcrun"
+  location:
+    adminAddress: "address not configured yet <nobody@nowhere>"
+    url: "http://localhost:8090/"
+  pollSCM:
+    pollingThreadCount: 10
+  scmGit:
+    addGitTagAction: false
+    allowSecondFetch: false
+    createAccountBasedOnEmail: false
+    disableGitToolChooser: false
+    hideCredentials: false
+    showEntireCommitSummaryInChanges: false
+    useExistingAccountWithSameEmail: false
+  timestamper:
+    allPipelines: false
+    elapsedTimeFormat: "'<b>'HH:mm:ss.S'</b> '"
+    systemTimeFormat: "'<b>'HH:mm:ss'</b> '"
+
+tool:
+  cmakeTool:
+    installations:
+    - name: "InSearchPath"
+  git:
+    installations:
+    - home: "git"
+      name: "Default"
+  mavenGlobalConfig:
+    globalSettingsProvider: "standard"
+    settingsProvider: "standard"
