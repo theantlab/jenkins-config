@@ -1,0 +1,67 @@
+jenkins:
+  systemMessage: "TheAntLab Jenkins"
+
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: "keirs"
+          name: "Keir Storrie"
+
+  authorizationStrategy:
+    unsecured: {}
+
+  nodes:
+    - permanent:
+        name: "windows-builder"
+        labelString: "windows"
+        remoteFS: "C:\\Jenkins"
+        launcher:
+          jnlp: {}
+        nodeProperties:
+          - envVars:
+              env:
+                - key: "ANDROID_SDK"
+                  value: "${WINDOWS_ANDROID_SDK}"
+                - key: "ANDROID_NDK"
+                  value: "${WINDOWS_ANDROID_NDK}"
+                - key: "JAVA_HOME"
+                  value: "${WINDOWS_JAVA_HOME}"
+
+    - permanent:
+        name: "macos-builder"
+        labelString: "mac"
+        remoteFS: "/var/jenkins"
+        launcher:
+          jnlp: {}
+
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+          - usernamePassword:
+              id: "github-pat-userpass2"
+              scope: GLOBAL
+              username: "theantlab"
+              password: "${GITHUB_PAT}"
+              description: "GitHub PAT as username/password"
+
+jobs:
+  - script: |
+      multibranchPipelineJob('SanAngeles') {
+        branchSources {
+          branchSource {
+            source {
+              github {
+                id('san-angeles')
+                repoOwner('theantlab')
+                repository('SanAngeles')
+                credentialsId('github-pat-userpass2')
+              }
+            }
+          }
+        }
+        orphanedItemStrategy {
+          discardOldItems {}
+        }
+      }
