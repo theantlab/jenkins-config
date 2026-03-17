@@ -2,23 +2,37 @@ credentials:
   system:
     domainCredentials:
     - credentials:
-      - string:
-          description: "GitHub Personal Access Token"
-          id: "github-pat"
-          scope: GLOBAL
-          secret: "${GITHUB_PAT}"
       - usernamePassword:
-          description: "GitHub PAT as username/password"
+          description: "Github Personal Access Token"
           id: "github-pat-userpass"
           password: "${GITHUB_PAT}"
           scope: GLOBAL
           username: "theantlab"
-      - usernamePassword:
-          description: "GitHub PAT as username/password"
-          id: "github-pat-userpass2"
-          password: "${GITHUB_PAT}"
+      - file:
+          description: "distribution.p12"
+          id: "ios-distribution-cert"
           scope: GLOBAL
-          username: "theantlab"
+          secretBytes: "${IOS_DISTRIBUTION_CERT}"
+      - file:
+          description: "distribution.key"
+          id: "ios-distribution-key"
+          scope: GLOBAL
+          secretBytes: "${IOS_DISTRIBUTION_KEY}"
+      - string:
+          description: "ios-cert-passphrase"
+          id: "ios-cert-passphrase"
+          scope: GLOBAL
+          secret: "${IOS_CERT_PASSPHRASE}"
+      - file:
+          description: "Molecules_Provisioning_Profile.mobileprovision"
+          id: "ios-provisioning-profile"
+          scope: GLOBAL
+          secretBytes: "${IOS_PROVISIONING_PROFILE}"
+      - string:
+          description: "macOS login keychain password"
+          id: "macos-keychain-password"
+          scope: GLOBAL
+          secret: "${MACOS_KEYCHAIN_PASSWORD}"
 
 jenkins:
   crumbIssuer:
