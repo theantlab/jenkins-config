@@ -25,6 +25,19 @@ jenkins:
       remoteFS: "/Users/Shared/Jenkins"
       retentionStrategy: "always"
   - permanent:
+      labelString: "linux android flutter c cpp rust go python java"
+      launcher:
+        inbound:
+          workDirSettings:
+            disabled: false
+            failIfWorkDirIsMissing: false
+            internalDir: "remoting"
+      name: "linux-builder"
+      nodeDescription: "theantlab-headless Debian linux builder"
+      numExecutors: 2
+      remoteFS: "/home/keirs/jenkins"
+      retentionStrategy: "always"
+  - permanent:
       labelString: "windows android windows-app electron dotnet"
       launcher:
         inbound:
